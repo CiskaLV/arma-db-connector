@@ -1,0 +1,11 @@
+[config]
+loglevel = true
+
+[[database]]
+name = "postgres"
+kind = "postgres"
+host = "localhost"
+port = 5432
+username = "postgres"
+password = "postgres"
+database = "postgres"

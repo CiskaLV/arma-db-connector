@@ -1,0 +1,8 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#411468",
+    "titleBar.activeBackground": "#5C1D91",
+    "titleBar.activeForeground": "#FCFAFE"
+  },
+  "cSpell.words": ["handleconn"]
+}

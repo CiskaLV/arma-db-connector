@@ -1,0 +1,23 @@
+[package]
+name = "arma-db-connector"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = "1.4.0"
+# arma-rs = "1.9.3"
+arma-rs = { git = "https://github.com/Eathox/arma-rs", branch = "group-state" }
+sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls","postgres"] }
+tokio = { version = "1.26.0", features = ["full"] }
+toml = "0.7.3"
+serde = "1.0.158"
+serde_derive = "1.0.158"
+
+[lib]
+name = "ext"
+crate-type = ["cdylib"]
+
+# [build]
+# targets = ["i686-pc-windows-msvc", ]
