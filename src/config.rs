@@ -4,18 +4,18 @@ use std::process::exit;
 use serde_derive::Deserialize;
 
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Config {
     pub config: Settings,
     pub database: Vec<DbConfig>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     loglevel: Option<bool>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct DbConfig {
     pub name: String,
     pub kind: String,

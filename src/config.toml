@@ -2,9 +2,9 @@
 loglevel = true
 
 [[database]]
-name = "postgres"
+name = "pg"
 kind = "postgres"
-host = "localhost"
+host = "192.168.8.10"
 port = 5432
 username = "postgres"
 password = "postgres"

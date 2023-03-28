@@ -1,46 +1,58 @@
+// #[macro_use]
+// extern crate log;
 
-use std::vec;
+// mod logger;
 
-use arma_rs::{arma, Extension, context, Group};
+use std::collections::HashMap;
+use uuid::Uuid;
 
-pub mod postgres;
-pub mod handleconn;
+use arma_rs::{arma, Extension};
+use tokio::sync::RwLock;
+
+mod db;
 pub mod config;
+
+
+#[derive(Debug)]
+pub enum Database {
+    Postgres(db::postgres::Pg),
+}
+
+lazy_static::lazy_static! {
+    static ref RUNTIME: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("Failed to create Tokio runtime");
+    pub static ref DATABASE: RwLock<HashMap<Uuid, Database>> = RwLock::new(HashMap::new());
+    pub static ref LOCKED: RwLock<bool> = RwLock::new(false);
+    static ref CONFIG: RwLock<config::Config> = RwLock::new(config::Config::new());
+}
 
 #[arma]
 fn init() -> Extension {
-    let exp = Extension::build()
+    let ext = Extension::build()
         .version("0.1.0".to_owned())
-        // .state(Config::new())
-        // .group("sql", handleconn::group());
-        .group("test", handleconn::group());
-        // .group("g", generate_db_group());
+        .group("db", db::group())
+        .command("test",test)
+        .finish();
 
-
-    exp.finish()
+        // logger::init(ext.context());
+  
+    ext
 }
 
-fn generate_db_group() -> Group {
-    let cfg = config::Config::new();
-
-    let mut groups: Vec<Group> = vec![];
-
-    for db in cfg.database {
-        groups.push(
-            Group::new()
-                .state(handleconn::Database::new(&db.kind))
-        )
-    }
-
-    Group::new().group("a", groups[0])
+fn test() {
+    
 }
 
 #[cfg(test)]
 mod tests {
-    // #[test]
-    // fn setup_sql() {
-    //     let extension = init().testing();
-    //     let (output, _) = unsafe { extension.call("sql:init", None) }; //Some(vec!["postgres".to_string()]))
-    //     assert_eq!(output, "Connected to database: 8");
-    // }
+    use super::{init};
+
+    #[test]
+    fn test_test() {
+        let extension = init().testing();
+        let (output, _) = unsafe { extension.call("test", None) };
+        assert_eq!(output, "1");
+    }
 }
