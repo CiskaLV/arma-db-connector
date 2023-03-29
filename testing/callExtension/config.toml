@@ -4,8 +4,8 @@ loglevel = true
 [[database]]
 name = "pg"
 kind = "postgres"
-host = "51.89.149.155"
+host = "192.168.8.10"
 port = 5432
 username = "postgres"
-password = "number1nonce"
+password = "postgres"
 database = "postgres"

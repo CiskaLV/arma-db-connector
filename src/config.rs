@@ -28,7 +28,7 @@ pub struct DbConfig {
 
 impl Config {
     pub fn new() -> Self {
-        let filename = "D:\\Reppos\\arma-db-connector\\src\\config.toml";
+        let filename = "C:\\Users\\gusta\\OneDrive\\Desktop\\Reepos\\arma-db-connector\\src\\config.toml";
     let content = match fs::read_to_string(filename) {
         Ok(c) => c,
         Err(e) => {

@@ -1,5 +1,5 @@
 use uuid::Uuid;
-use arma_rs::{Group, IntoArma};
+use arma_rs::{Group, Value};
 use crate::{DATABASE, RUNTIME, LOCKED, CONFIG, Database};
 pub mod postgres;
 
@@ -48,31 +48,22 @@ fn lock_db() -> String {
 }
 
 
-fn query_db(db_uuid: String, query: String) -> arma_rs::Value {
+fn query_db(db_uuid: String, query: String) -> Value {
     RUNTIME.block_on(async move {
         let db_store = DATABASE.read().await;
         let Some(db) = db_store.get(&Uuid::parse_str(db_uuid.as_str()).unwrap()) else {
-            return Vec::new()
+            return arma_rs::IntoArma::to_arma(&"Database not found".to_string())
         };
 
         match db {
             Database::Postgres(db) => {
                 let ret = db.query(query.as_str()).await;
-                ret
+                // println!("{:#?}", ret);
+                let arma = arma_rs::IntoArma::to_arma(&ret);
+                println!("{}", arma);
+                arma
             },
             _ => unimplemented!()
         }
     })
 }
-
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-
-//     #[test]
-//     fn test_init_db() {
-//         let db_name = "postgres".to_string();
-//         let uuid = init_db(db_name);
-//         println!("{}", uuid);
-//     }
-// }

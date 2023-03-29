@@ -1,6 +1,8 @@
-use sqlx::{Pool, Postgres, postgres::{PgPoolOptions, PgRow}, Error, Row};
+use sqlx::{Pool, Postgres, postgres::{PgPoolOptions, PgRow}, Error, Row, ValueRef, Column};
 use crate::config::DbConfig;
 use arma_rs::{Value, IntoArma};
+
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Pg {
@@ -30,19 +32,32 @@ impl Pg {
         Ok(Self { pool })
     }
 
-    pub async fn query(&self, query: &str) -> Value {
+    pub async fn query(&self, query: &str) -> Vec<String> {
         let mut conn = self.pool.acquire().await.expect("Failed to acquire connection");
-        let result = sqlx::query(query).fetch_all(&mut conn).await.expect("Failed to fetch all rows");
+        let result = sqlx::query(query).fetch_one(&mut conn).await.expect("Failed to fetch all rows");
 
-        let mut ret = Vec::new();
-        for row in result {
-            for i in 0..row.len() {
-                let val = row.get(i);
-                ret.push(val);
-            }
-        }
-
-
-        // arma_rs::Value::Array(ret)
+        let row = row_to_vec(result);
+        row
     }
+}
+
+
+fn row_to_vec(row: PgRow) -> Vec<String> {
+    let mut result = Vec::<String>::new();
+    for col in row.columns() {
+        let value = row.try_get_raw(col.ordinal()).unwrap();
+        // let s = value.as_str().unwrap().to_string();
+        let s =  value.format();
+        
+        // let value = match value.is_null() {
+        //     true => "NULL".as_bytes(),
+        //     false => value.as_bytes().unwrap(),
+        // };
+        // println!("{:?}", value);
+
+        // let s = std::str::from_utf8(value).unwrap().to_string();
+        println!("{:?}", s);
+        result.push(s);
+    }
+    result
 }
