@@ -1,63 +1,74 @@
-use sqlx::{Pool, Postgres, postgres::{PgPoolOptions, PgRow}, Error, Row, ValueRef, Column};
-use crate::config::DbConfig;
 use arma_rs::{Value, IntoArma};
-
-use std::collections::HashMap;
+use deadpool_postgres::{Config, Pool, Runtime};
+use tokio_postgres::NoTls;
+use tokio_postgres::types::Type;
+use crate::config::DbConfig;
 
 #[derive(Debug)]
 pub struct Pg {
-    pub pool: Pool<Postgres>,
+    pub pool: Pool,
 }
 
 impl Pg {
-    pub async fn new(db_cfg: &DbConfig) -> Result<Pg, Error> {
-        let mut conn: String = "postgres://".to_owned();
-            conn.push_str(&db_cfg.username);
-            conn.push_str(":");
-            conn.push_str(&db_cfg.password);
-            conn.push_str("@");
-            conn.push_str(&db_cfg.host);
-            conn.push_str(":");
-            conn.push_str(&db_cfg.port.to_string());    
-            conn.push_str("/");
-            conn.push_str(&db_cfg.database);
+    pub async fn new(db_cfg: &DbConfig) -> Self {
+        let mut cfg = Config::new();
 
-        let pool =  PgPoolOptions::new()
-            .min_connections(1)
-            .max_connections(5)
-            .connect(conn.to_owned().as_str())
-            .await
-            .expect("Failed to create Postgres connection pool");
+        cfg.host = Some(db_cfg.host.to_owned());
+        cfg.port = Some(db_cfg.port);
+        cfg.user = Some(db_cfg.username.to_owned());
+        cfg.dbname = Some(db_cfg.database.to_owned());
+        cfg.password = Some(db_cfg.password.to_owned());
 
-        Ok(Self { pool })
+        let pool = cfg.create_pool(Some(Runtime::Tokio1), NoTls).unwrap();
+
+        Self { pool }
     }
 
-    pub async fn query(&self, query: &str) -> Vec<String> {
-        let mut conn = self.pool.acquire().await.expect("Failed to acquire connection");
-        let result = sqlx::query(query).fetch_one(&mut conn).await.expect("Failed to fetch all rows");
+    pub async fn query(&self, query: &str) -> Value {
+        let client = self.pool.get().await.unwrap();
+        let stmt = client.prepare(query).await.unwrap();
+        // let rows = client.query(&stmt, &[]).await.unwrap();
 
-        let row = row_to_vec(result);
-        row
+        let mut result: Vec<Value> = vec![];
+        for row in client.query(&stmt, &[]).await.unwrap() {
+
+            let mut vec: Vec<Value> = vec![];
+            for (i,col) in row.columns().iter().enumerate() {
+                match col.type_().to_owned() {
+                    Type::INT2 => {
+                        let value: i16 = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::INT4 => {
+                        let value: i32 = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::FLOAT4 => {
+                        let value: f32 = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::FLOAT8 => {
+                        let value: f64 = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::TEXT => {
+                        let value: String = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::BOOL => {
+                        let value: bool = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    Type::VARCHAR => {
+                        let value: String = row.try_get(i).unwrap();
+                        vec.push(IntoArma::to_arma(&value));
+                    },
+                    _ => unimplemented!()
+                }
+            }
+            result.push(IntoArma::to_arma(&vec));
+        }
+        println!("{:?}", result);
+        IntoArma::to_arma(&result)
     }
-}
-
-
-fn row_to_vec(row: PgRow) -> Vec<String> {
-    let mut result = Vec::<String>::new();
-    for col in row.columns() {
-        let value = row.try_get_raw(col.ordinal()).unwrap();
-        // let s = value.as_str().unwrap().to_string();
-        let s =  value.format();
-        
-        // let value = match value.is_null() {
-        //     true => "NULL".as_bytes(),
-        //     false => value.as_bytes().unwrap(),
-        // };
-        // println!("{:?}", value);
-
-        // let s = std::str::from_utf8(value).unwrap().to_string();
-        println!("{:?}", s);
-        result.push(s);
-    }
-    result
 }
