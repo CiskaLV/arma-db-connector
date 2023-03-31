@@ -26,7 +26,7 @@ lazy_static::lazy_static! {
         .expect("Failed to create Tokio runtime");
     pub static ref DATABASE: RwLock<HashMap<Uuid, Database>> = RwLock::new(HashMap::new());
     pub static ref LOCKED: RwLock<bool> = RwLock::new(false);
-    static ref CONFIG: RwLock<config::Config> = RwLock::new(config::Config::new());
+    pub static ref CONFIG: RwLock<config::Config> = RwLock::new(config::Config::new());
 }
 
 #[arma]
@@ -35,6 +35,7 @@ fn init() -> Extension {
         .version("0.1.0".to_owned())
         .group("db", db::group())
         .command("uuid", command_uuid)
+        .command("test", test)
         .finish();
 
         logger::init(ext.context());
@@ -48,15 +49,35 @@ fn command_uuid() -> Uuid {
     uuid
 }
 
+fn test() -> String {
+    RUNTIME.block_on(async move {
+        let file = match std::fs::File::open("./@daveDB/config.toml") {
+            Ok(file) => file,
+            Err(e) => {
+                error!("Failed to open config file: {}", e);
+                return "".to_string();
+            }
+        };
+        // let dir = std::env::current_dir().unwrap();
+        // dir.to_str().unwrap().to_string()
+        //  std::fs::File::open("config.toml");
+        // let filename = "config.toml";
+        // let content = std::fs::read_to_string(filename).unwrap();
+        // content
+        debug!("{:?}", file);
+        format!("{:?}", file)
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{init};
+    use super::init;
     // use uuid::Uuid;
 
     #[test]
     fn test() {
         let extension = init().testing();
-        let (output, _) = unsafe { extension.call("", None) };
+        let (output, _) = unsafe { extension.call("test", None) };
         println!("{}", output);
         // assert_eq!(output, Uuid::nil().to_string());
     }

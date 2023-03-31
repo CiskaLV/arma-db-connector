@@ -10,9 +10,11 @@ class CfgPatches {
 
 class CfgFunctions {
 	class daveDB {
-		file = "daveDB";
-        class init {
-            preInit = 1;
-        };
+		tag = "daveDB";
+		class System {
+			file = "\davedb";
+			class init {preInit=1;};
+			class test {};
+		};
 	};
 };

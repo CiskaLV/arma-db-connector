@@ -21,8 +21,11 @@ fn init_db(db_name: String) -> Uuid {
 
         let cfg = CONFIG.read().await;
         let Some(db_cfg) = cfg.database.iter().find(|db| db.name == db_name) else {
+            error!("Database not found {}", db_name);
             return Uuid::nil()
         };
+
+
 
         match db_cfg.kind.as_ref() {
             "postgres" => {
@@ -52,7 +55,10 @@ fn init_db(db_name: String) -> Uuid {
 
                 uuid
             },
-            _ => unimplemented!()
+            _ => {
+                error!("Database type not supported {}", db_cfg.kind);
+                return Uuid::nil();
+            }
         }
     })
 }
@@ -72,7 +78,7 @@ fn query_db(db_uuid: String, query: String ) -> Value {
             return arma_rs::IntoArma::to_arma(&"Database not found".to_string())
         };
 
-        println!("{:?}", db);
+        info!("Querying database: {}", query);
 
         match db {
             Database::Postgres(db) => {

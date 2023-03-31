@@ -38,7 +38,7 @@ impl MySQL {
             result.push(IntoArma::to_arma(&row_result));
         }  
         let arma = IntoArma::to_arma(&result);
-        println!("{:?}", arma);
+        // println!("{:?}", arma);
         arma
     }
 }

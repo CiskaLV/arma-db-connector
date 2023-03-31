@@ -68,7 +68,7 @@ impl Pg {
             }
             result.push(IntoArma::to_arma(&vec));
         }
-        println!("{:?}", result);
+        // println!("{:?}", result);
         IntoArma::to_arma(&result)
     }
 }
