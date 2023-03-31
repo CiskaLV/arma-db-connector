@@ -13,7 +13,7 @@ impl log::Log for ArmaLogger {
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
             self.context.callback_data(
-                "my_ext_log",
+                "ext_log",
                 record.target(),
                 Some(vec![
                     format!("{}", record.level()).to_uppercase(),
