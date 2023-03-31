@@ -6,19 +6,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.4.0"
+lazy_static = "*"
 # arma-rs = "1.9.3"
 arma-rs = { git = "https://github.com/BrettMayson/arma-rs", branch = "main", features = ["uuid"] }
-sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls","postgres"] }
-tokio = { version = "1.26.0", features = ["full"] }
-toml = "0.7.3"
-serde = "1.0.158"
-serde_derive = "1.0.158"
-uuid = { version = "1.3.0", features = ["v4"] }
-log = "0.4.17"
+# sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls","postgres","mysql"] }
+tokio = { version = "*", features = ["full"] }
+toml = "*"
+serde = "*"
+serde_derive = "*"
+uuid = { version = "*", features = ["v4"] }
+log = "*"
+deadpool-postgres = "0.10.5"
+tokio-postgres = { version = "0.7.8", features = ["with-uuid-0_8"] }
+mysql = "*"
+# r2d2_postgres = "0.18.1"
 
 [lib]
-name = "ext"
+name = "davedb"
 crate-type = ["cdylib"]
 
 # [build]
