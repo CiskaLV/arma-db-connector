@@ -1,11 +1,9 @@
 #[macro_use]
 extern crate log;
-
 mod logger;
 
 use std::collections::HashMap;
 use uuid::Uuid;
-
 use arma_rs::{arma, Extension};
 use tokio::sync::RwLock;
 
@@ -35,7 +33,6 @@ fn init() -> Extension {
         .version("0.1.0".to_owned())
         .group("db", db::group())
         .command("uuid", command_uuid)
-        .command("test", test)
         .finish();
 
         logger::init(ext.context());
@@ -49,38 +46,10 @@ fn command_uuid() -> Uuid {
     uuid
 }
 
-fn test() -> String {
-    RUNTIME.block_on(async move {
-        let file = match std::fs::File::open("./@daveDB/config.toml") {
-            Ok(file) => file,
-            Err(e) => {
-                error!("Failed to open config file: {}", e);
-                return "".to_string();
-            }
-        };
-        // let dir = std::env::current_dir().unwrap();
-        // dir.to_str().unwrap().to_string()
-        //  std::fs::File::open("config.toml");
-        // let filename = "config.toml";
-        // let content = std::fs::read_to_string(filename).unwrap();
-        // content
-        debug!("{:?}", file);
-        format!("{:?}", file)
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::init;
     // use uuid::Uuid;
-
-    #[test]
-    fn test() {
-        let extension = init().testing();
-        let (output, _) = unsafe { extension.call("test", None) };
-        println!("{}", output);
-        // assert_eq!(output, Uuid::nil().to_string());
-    }
 
     #[test]
     fn postgres() {
@@ -98,7 +67,7 @@ mod tests {
         let extension = init().testing();
         let (output, _) = unsafe { extension.call("db:init", Some(vec!["mysql".to_string()])) };
         println!("{}", output);
-        let (o, err) = unsafe { extension.call("db:query", Some(vec![output, "SELECT * FROM new_players LIMIT 1;".to_string()])) };
+        let (o, err) = unsafe { extension.call("db:query", Some(vec![output, "SELECT * FROM players LIMIT 1;".to_string(), "[]".to_string()])) };
 
         println!("Result: {},  Error: {}", o, err);
     }

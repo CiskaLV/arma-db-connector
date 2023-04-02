@@ -1,5 +1,5 @@
 [config]
-loglevel = true
+log_query = true
 
 [[database]]
 name = "pg"

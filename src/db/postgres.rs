@@ -1,7 +1,7 @@
 use arma_rs::{Value, IntoArma};
 use deadpool_postgres::{Config, Pool, Runtime};
 use tokio_postgres::NoTls;
-use tokio_postgres::types::Type;
+use tokio_postgres::types::{Type, ToSql};
 use crate::config::DbConfig;
 
 #[derive(Debug)]
@@ -24,14 +24,14 @@ impl Pg {
         Self { pool }
     }
 
-    pub async fn query(&self, query: &str) -> Value {
+    pub async fn query(&self, query: &str, params: Vec<String>) -> Result<Value, String> {
         let client = self.pool.get().await.unwrap();
         let stmt = client.prepare(query).await.unwrap();
-        // let rows = client.query(&stmt, &[]).await.unwrap();
+        let query_params: Vec<&(dyn ToSql + Sync)> = params.iter().map(|x| x as &(dyn ToSql + Sync)).collect();
 
         let mut result: Vec<Value> = vec![];
-        for row in client.query(&stmt, &[]).await.unwrap() {
 
+        for row in client.query(&stmt, &query_params).await.unwrap() {
             let mut vec: Vec<Value> = vec![];
             for (i,col) in row.columns().iter().enumerate() {
                 match col.type_().to_owned() {
@@ -69,6 +69,14 @@ impl Pg {
             result.push(IntoArma::to_arma(&vec));
         }
         // println!("{:?}", result);
-        IntoArma::to_arma(&result)
+        Ok(IntoArma::to_arma(&result))
+    }
+
+    pub async fn query_drop(&self, query: &str, params: Vec<String>) -> Result<u64, String> {
+        let client = self.pool.get().await.unwrap();
+        let stmt = client.prepare(query).await.unwrap();
+        let query_params: Vec<&(dyn ToSql + Sync)> = params.iter().map(|x| x as &(dyn ToSql + Sync)).collect();
+        let res = client.execute(&stmt, &query_params).await.unwrap();
+        Ok(res)
     }
 }
