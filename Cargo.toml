@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 lazy_static = "*"
 # arma-rs = "1.9.3"
-arma-rs = { git = "https://github.com/BrettMayson/arma-rs", branch = "main", features = ["uuid"] }
+arma-rs = { git = "https://github.com/BrettMayson/arma-rs", branch = "main", features = ["uuid", "chrono"] }
 # sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls","postgres","mysql"] }
 tokio = { version = "*", features = ["full"] }
 toml = "*"
@@ -19,6 +19,7 @@ log = "*"
 deadpool-postgres = "0.10.5"
 tokio-postgres = { version = "0.7.8", features = ["with-uuid-0_8"] }
 mysql = "*"
+chrono = "0.4.24"
 # r2d2_postgres = "0.18.1"
 
 [lib]
