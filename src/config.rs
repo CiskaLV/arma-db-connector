@@ -38,8 +38,8 @@ pub enum DbKind {
 
 impl Config {
     pub fn new() -> Self {
-    // let filename = "./@daveDB/config.toml";
-    let filename = "D:\\Reppos\\arma-db-connector\\daveDB\\config.toml";
+    let filename = "./@daveDB/config.toml";
+    // let filename = "D:\\Reppos\\arma-db-connector\\daveDB\\config.toml";
     let content = match fs::read_to_string(filename) {
         Ok(c) => c,
         Err(e) => {
